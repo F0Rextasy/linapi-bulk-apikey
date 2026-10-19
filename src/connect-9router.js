@@ -4,7 +4,7 @@
 /**
  * Connect LinAPI to a 9Router instance.
  *
- * LinAPI serves an OpenAI-compatible endpoint (https://inference.linapi.global/v1), so a single
+ * LinAPI serves an OpenAI-compatible endpoint (https://a.linapi.net/v1), so a single
  * provider-node carries every key: this registers one `openai-compatible` node
  * with prefix `linapi` and then one connection per API key, named
  * `linapi-001`, `linapi-002`, … Re-running it is idempotent (an existing node
@@ -13,7 +13,7 @@
  * Usage:
  *   node src/connect-9router.js \
  *     --base http://localhost:20128 --password 123456 \
- *     --api-key dahl_xxxx [--name "LinAPI"] [--prefix linapi]
+ *     --api-key <key> [--name "LinAPI"] [--prefix linapi]
  *
  *   node src/connect-9router.js                  # register every key in keys.txt
  *   node src/connect-9router.js --model <id>     # pin the connection's default model
@@ -24,7 +24,7 @@
  *   --api-key <key>    LinAPI API key     (default: every key in keys.txt)
  *   --name <name>      provider-node name       (default LinAPI)
  *   --prefix <slug>    provider prefix in 9Router (default linapi)
- *   --base-url <url>   provider base URL        (default https://inference.linapi.global/v1)
+ *   --base-url <url>   provider base URL        (default https://a.linapi.net/v1)
  *   --model <id>       connection default model (default MiniMaxAI/MiniMax-M2.7)
  *
  * Zero dependencies. Node.js >= 18.
