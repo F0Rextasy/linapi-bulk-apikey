@@ -35,7 +35,7 @@
 
 ## ✨ Por que isto existe
 
-LinAPI é um painel New-API cujo cadastro exige **apenas um endereço de e-mail e um código de 6 caracteres dessa caixa de entrada** — o Turnstile está desativado, não há cartão, e toda conta nova carrega cota mais um reforço de **check-in diário**. A unidade que escala é *uma conta por chave*, então esta ferramenta cria contas e grava um `keys.txt` onde **cada linha sobreviveu a uma chamada de chat ao vivo** (109 chaves na frota do operador: 102 do trilho de criação, 7 criadas pela CLI fornecida enquanto era verificada). O custo real do trilho é o throttling por IP, não o captcha: um worker fixa uma saída, mantém sua caixa de entrada durante os cooldowns de `/api/verification`, e rotaciona a caixa de entrada quando o painel diz que o endereço já é conhecido.
+LinAPI é um painel New-API cujo cadastro exige **apenas um endereço de e-mail e um código de 6 caracteres dessa caixa de entrada** — o Turnstile está desativado, não é preciso cartão, e toda conta nova traz cota mais um recarregamento de **check-in diário**. A unidade que escala é *uma conta por chave*, então esta ferramenta cria contas e grava um `keys.txt` onde **cada linha sobreviveu a uma chamada de chat ao vivo** (109 chaves na frota do operador: 102 do trilho de criação, 7 criadas pela CLI fornecida enquanto era verificada). O custo real do trilho é o throttling por IP, não o captcha: um worker fixa uma saída, mantém sua caixa de entrada durante os cooldowns de `/api/verification`, e rotaciona a caixa de entrada quando o painel diz que o endereço já é conhecido.
 
 ## 🎁 Nível gratuito — quanto você recebe
 
@@ -50,7 +50,7 @@ LinAPI é um painel New-API cujo cadastro exige **apenas um endereço de e-mail 
 | Concessão diária | check-in ativado — a ferramenta chama `POST /api/user/checkin` em cada conta |
 | A unidade que escala | **uma conta = uma chave** → `--count N` é "N contas" |
 
-A chave fica na lista de tokens da conta, e a ferramenta re-vincula esse token a outro grupo (`default` → `vip` → `测试`, descoberto em `/api/pricing`) até o chat responder 200.
+A chave fica na lista de tokens da conta, e a ferramenta re-vincula esse token a outro grupo (`default` → `vip` → `测试`, descoberto a partir de `/api/pricing`) até o chat responder 200.
 
 > 💡 O nível gratuito é definido pela LinAPI e pode mudar. Confira os números ao vivo em [a.linapi.net](https://a.linapi.net) — e deixe o próprio gate da ferramenta decidir:
 
@@ -69,7 +69,7 @@ O painel precifica **53 ids de modelo** (`GET /api/pricing`). Apenas os ids que 
 | `deepseek-v4-flash` | ✓ | 200 |
 | `deepseek-v4-pro` | ✓ | 200 |
 
-Recusado com uma chave funcional: `deepseek-chat` → **503 `model_not_found` — "No available channel for model deepseek-chat under group …"** (uma lacuna de grupo/canal, não um problema de chave). O painel também expõe `deepseek-reasoner`, `deepseek-v3.2` e ids de outros fornecedores; eles estão ausentes desta tabela porque não foram testados no gate.
+Com gate e **recusados** com as mesmas chaves funcionais (3 chaves, 0 ao vivo): `deepseek-chat` e `deepseek-reasoner` → **503 `model_not_found` — "No available channel for model … under group …"**. Isso é uma lacuna de canal no painel, não um problema de chave — a ferramenta re-vincula o grupo do token antes de desistir. Ids de outros fornecedores neste painel estão fora do escopo aqui.
 
 ## 🧪 Como usar a API
 
@@ -95,11 +95,11 @@ node src/launcher.js              # interactive
 node src/cli.js --count 50 --conc 3
 ```
 
-`keys.txt` é gravado **somente** depois que uma conclusão de chat ao vivo comprova a chave.
+`keys.txt` é gravado **somente** após uma conclusão de chat ao vivo comprovar a chave.
 
 | Modo | O que faz |
 | --- | --- |
-| `run` (padrão) | cria contas até `--count`, testa cada chave com um chat ao vivo |
+| `run` (padrão) | cria contas até `--count`, valida cada chave com um chat ao vivo |
 | `--verify-only` | re-varre `keys.txt`, movendo o que falhar para `keys-ungated.txt` |
 | `--screen` | testa sua lista de proxies contra o painel → `proxies.live.txt` |
 | `--probe` | verificação de ambiente: flags do painel, catálogo, grupos do gate, saídas |
@@ -107,22 +107,22 @@ node src/cli.js --count 50 --conc 3
 
 ### 🖱️ O launcher
 
-O launcher pergunta a lista de proxies, a contagem e o modelo de verificação, memoriza-os em `launcher.config.json`, e executa a CLI com as flags corretas.
+O launcher pede a lista de proxies, a contagem e o modelo de verificação, memoriza-os em `launcher.config.json`, e executa a CLI com as flags corretas.
 
-## ✅ Verificado funcionando — toda chave é testada
+## ✅ Verificado e funcionando — toda chave é testada
 
 | Verificação | Resultado |
 | --- | --- |
 | `GET /api/status` | **200** — `LinAPI`, `email_verification: true`, `turnstile_check: false`, `checkin_enabled: true` |
 | `GET /api/pricing` | **200** — **53** ids precificados; grupos do gate `default`, `vip`, `测试` |
 | `GET /api/verification?email=…` | **200** `{success: true}` — com throttling por IP, então a ferramenta mantém a caixa de entrada e espera em vez de descartar a tentativa |
-| caixa de entrada | o código chega como `您的验证码为: <6 chars>` (assunto `LinAPI邮箱验证邮件`); `hex` e sequências de dígitos são tentados por vez quando um e-mail carrega mais de um token |
+| caixa de entrada | o código chega como `您的验证码为: <6 chars>` (assunto `LinAPI邮箱验证邮件`); `hex` e sequências de dígitos são tentados em ordem quando um e-mail carrega mais de um token |
 | `POST /api/user/register?turnstile=` | **200** |
 | `POST /api/user/login?turnstile=` | **200** — `access_token` |
 | `POST /api/token/` → `POST /api/token/<id>/key` | token criado, chave em texto simples revelada (o painel a mascara nas respostas de listagem) |
 | `POST /api/user/checkin` | **200** |
 | `POST /v1/chat/completions` — executado para **toda** chave antes de ser gravada | **200** com conteúdo real |
-| uma chave que falha na verificação de chat | nunca gravada em `keys.txt` |
+| uma chave que falha na verificação de chat | nunca é gravada em `keys.txt` |
 
 ## 🧭 Como funciona
 
@@ -173,7 +173,7 @@ Toda requisição sai por uma saída do seu pool — a ferramenta nunca disca pa
 | --- | --- |
 | `keys.txt` | chaves com chat-200, uma por linha — ignorado pelo git |
 | `keys-ungated.txt` | chaves que falharam na última varredura `--verify-only` — tente novamente depois |
-| `accounts.json` | e-mail / nome de usuário / cota / grupo / status do chat por conta — ignorado pelo git |
+| `accounts.json` | e-mail / nome de usuário / cota / grupo / status de chat por conta — ignorado pelo git |
 | `proxies.txt` | sua lista de saídas — ignorado pelo git |
 
 ## 🔌 Conectar ao 9Router
@@ -198,7 +198,7 @@ Padrões: `--base http://localhost:20128`, `--password 123456`, `--name "LinAPI"
 
 ## 🐞 Problemas
 
-Se o painel mudar o formato do cadastro, o e-mail de código ou a lista de grupos, a ferramenta para nessa etapa e avisa (`--probe` mostra o que ela vê). **[Abra uma issue](../../issues)** com o comando que você executou e a saída exata; PRs são bem-vindos.
+Se o painel mudar o formato do seu cadastro, seu e-mail de código ou sua lista de grupos, a ferramenta para nessa etapa e avisa (`--probe` mostra o que ela vê). **[Abra uma issue](../../issues)** com o comando que você executou e a saída exata; PRs são bem-vindos.
 
 ## 📄 Licença
 
