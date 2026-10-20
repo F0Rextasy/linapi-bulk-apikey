@@ -85,8 +85,8 @@ curl https://a.linapi.net/v1/chat/completions \
 # clone or fork this repository, then:
 cd linapi-bulk-apikey
 
-# 1) your proxy list, one per line (http://… or socks5://…)
-printf 'http://127.0.0.1:8080\n' > proxies.txt
+# 1) your proxy list, one per line (http://… or socks5://…) — optional, see below
+printf 'http://127.0.0.1:8080\n' > proxies.txt   # optional — without it the tool runs direct
 
 # 2) go
 node src/launcher.js              # interactive
@@ -157,14 +157,20 @@ node src/cli.js [mode] [flags]
 | `--model <id>` | `deepseek-v4.1-flash` | model used for the live gate |
 | `--group <name>` | panel default | group the key is created in |
 | `--host <name>` | `a.linapi.net` | panel host (the same rail runs on mirrors of this panel) |
-| `--pool <file>` | `proxies.txt` | proxy list (`LINAPI_PROXIES` env works too) |
+| `--pool <file>` | `proxies.txt` | optional proxy list (`LINAPI_PROXIES` env works too) |
 | `--inbox <chain>` | `emailnator,temptf,broker` | mailbox rail order |
 | `--tries N` | 2 | exits tried per account |
 | `--gap MS` | 1200 | pause between rounds inside a worker |
 
 ## 🛰️ Behind a proxy
 
-Every request leaves through an exit from your pool — the tool never dials the panel from your own line. The panel throttles `/api/verification` **per IP**, so a worker pins one exit for the whole account and the pool rotates between workers. Measured on the operator's fleet: 3 accounts in flight over 8 exits minted 3/3 keys in **3.5 min** (the first two in 38 s).
+**Optional — recommended at scale (per-IP limits, bans).** The tool works without a proxy too.
+
+- **With a pool:** pass `--pool <file>` (or set `LINAPI_PROXIES`) and every request goes through an exit from that list — a worker pins one exit for the whole account and the pool rotates between workers.
+- **Without a pool:** the CLI prints `running WITHOUT a proxy (direct)` and connects directly; registration, the mail rail and the chat gate all run the same way.
+- `--screen` tests the exits you have against the panel, or the direct route when you have none.
+
+The panel throttles `/api/verification` **per IP**, which is why a pool helps at scale. Measured on the operator's fleet: 3 accounts in flight over 8 exits minted 3/3 keys in **3.5 min** (the first two in 38 s).
 
 ## 📄 Files
 
