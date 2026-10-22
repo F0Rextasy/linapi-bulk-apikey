@@ -1,6 +1,7 @@
 <div align="center">
 
 ```
+
 ██╗     ██╗███╗   ██╗ █████╗ ██████╗ ██╗
 ██║     ██║████╗  ██║██╔══██╗██╔══██╗██║
 ██║     ██║██╔██╗ ██║███████║██████╔╝██║
@@ -82,6 +83,7 @@ curl https://a.linapi.net/v1/chat/completions \
 ## 🛠 快速开始
 
 ```bash
+
 # clone or fork this repository, then:
 cd linapi-bulk-apikey
 
@@ -90,6 +92,7 @@ printf 'http://127.0.0.1:8080\n' > proxies.txt
 
 # 2) go
 node src/launcher.js              # interactive
+
 # or directly:
 node src/cli.js --count 50 --conc 3
 ```

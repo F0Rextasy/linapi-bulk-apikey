@@ -68,7 +68,7 @@ The panel prices **53 model ids** (`GET /api/pricing`). Only ids that answered a
 | `deepseek-v4-flash` | ✓ | 200 |
 | `deepseek-v4-pro` | ✓ | 200 |
 
-Gated and **refused** with the same working keys (3 keys, 0 live): `deepseek-chat` and `deepseek-reasoner` → **503 `model_not_found` — "No available channel for model … under group …"**. That is a channel gap on the panel, not a key problem — the tool re-binds the token's group before it gives up. Other vendors' ids on this panel are out of scope here.
+Gated and **refused**keys verified**503 `model_not_found` — "No available channel for model … under group …"**. That is a channel gap on the panel, not a key problem — the tool re-binds the token's group before it gives up. Other vendors' ids on this panel are out of scope here.
 
 ## 🧪 How to use the API
 
@@ -170,7 +170,7 @@ node src/cli.js [mode] [flags]
 - **Without a pool:** the CLI prints `running WITHOUT a proxy (direct)` and connects directly; registration, the mail rail and the chat gate all run the same way.
 - `--screen` tests the exits you have against the panel, or the direct route when you have none.
 
-The panel throttles `/api/verification` **per IP**, which is why a pool helps at scale. Measured on the operator's fleet: 3 accounts in flight over 8 exits minted 3/3 keys in **3.5 min** (the first two in 38 s).
+The panel throttles `/api/verification` **per IP**verified**3.5 min** (the first two in 38 s).
 
 ## 📄 Files
 
